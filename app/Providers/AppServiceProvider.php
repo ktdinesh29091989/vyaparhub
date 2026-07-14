@@ -21,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production (Railway)
+        if (config('app.env') === 'production') {
+        \URL::forceScheme('https');
+        }
+        
         VerifyEmail::toMailUsing(function ($notifiable, string $url) {
             return (new MailMessage)
                 ->subject('Verify your VyaparHub email address')
