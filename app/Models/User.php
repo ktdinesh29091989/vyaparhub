@@ -58,6 +58,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->plan === 'pro' && $this->plan_expires_at && $this->plan_expires_at->isFuture();
     }
 
+    /** True while Pro is active and will lapse within the given number of days. */
+    public function isExpiringSoon(int $withinDays = 7): bool
+    {
+        return $this->isPro() && now()->diffInDays($this->plan_expires_at) <= $withinDays;
+    }
+
     /**
      * If a Pro subscription has lapsed, silently revert to the free plan.
      * Called on every authenticated request via CheckPlanStatus middleware.

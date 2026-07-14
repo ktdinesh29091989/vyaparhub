@@ -29,7 +29,7 @@
                 @endif
             </div>
             @php
-                $expiringSoon = $user->isPro() && now()->diffInDays($user->plan_expires_at) <= 7;
+                $expiringSoon = $user->isExpiringSoon();
                 $renewPrice = $user->plan_type === 'annual' ? \App\Models\User::ANNUAL_PRICE_RUPEES : \App\Models\User::PRO_PRICE_RUPEES;
             @endphp
             @if (! $user->isPro())

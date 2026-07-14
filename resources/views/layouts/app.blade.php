@@ -64,6 +64,12 @@
                 <h1 class="text-lg font-bold text-slate-900">@yield('heading', 'Dashboard')</h1>
             </div>
             <div class="flex items-center gap-3">
+                @if (auth()->user()->isExpiringSoon())
+                    <a href="{{ route('upgrade') }}" class="hidden animate-blink items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 sm:flex"
+                       title="Your plan expires on {{ auth()->user()->plan_expires_at->format('d M Y') }}">
+                        ⚠️ Renew soon
+                    </a>
+                @endif
                 @if (auth()->user()->plan === 'pro' && auth()->user()->plan_type === 'annual')
                     <span class="hidden rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700 sm:block">💎 Pro Annual</span>
                 @elseif (auth()->user()->plan === 'pro')
@@ -106,6 +112,10 @@
         </main>
     </div>
 </div>
-<style>[x-cloak]{display:none!important}</style>
+<style>
+    [x-cloak]{display:none!important}
+    @keyframes blink { 50% { opacity: 0.35; } }
+    .animate-blink { animation: blink 1.1s ease-in-out infinite; }
+</style>
 </body>
 </html>

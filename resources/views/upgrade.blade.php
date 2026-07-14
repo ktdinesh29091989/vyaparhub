@@ -1,7 +1,11 @@
 @extends('layouts.app')
 
-@section('title', "Start free. Upgrade when you're ready — ₹299/month")
-@section('heading', "Start free. Upgrade when you're ready — ₹299/month")
+@php
+    $planPageHeading = $user->isPro() ? 'Manage your plan' : "Start free. Upgrade when you're ready — ₹299/month";
+@endphp
+
+@section('title', $planPageHeading)
+@section('heading', $planPageHeading)
 @section('back', route('dashboard'))
 
 @section('content')
