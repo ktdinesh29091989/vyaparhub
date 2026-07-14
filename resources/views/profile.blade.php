@@ -16,17 +16,26 @@
         <div class="flex items-center justify-between">
             <div>
                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $user->isPro() ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $user->isPro() ? '✨ Pro' : 'Free' }}
+                    @if ($user->isPro() && $user->plan_type === 'annual')
+                        💎 Pro Annual
+                    @elseif ($user->isPro())
+                        ✨ Pro
+                    @else
+                        Free
+                    @endif
                 </span>
                 @if ($user->isPro())
                     <p class="mt-2 text-sm text-slate-500">Valid until {{ $user->plan_expires_at->format('d M Y') }}</p>
                 @endif
             </div>
-            @php $expiringSoon = $user->isPro() && $user->plan_expires_at->diffInDays(now()) <= 7; @endphp
+            @php
+                $expiringSoon = $user->isPro() && now()->diffInDays($user->plan_expires_at) <= 7;
+                $renewPrice = $user->plan_type === 'annual' ? \App\Models\User::ANNUAL_PRICE_RUPEES : \App\Models\User::PRO_PRICE_RUPEES;
+            @endphp
             @if (! $user->isPro())
                 <a href="{{ route('upgrade') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Upgrade to Pro</a>
             @elseif ($expiringSoon)
-                <a href="{{ route('upgrade') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Renew Pro — ₹299</a>
+                <a href="{{ route('upgrade') }}" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">Renew Pro — ₹{{ number_format($renewPrice) }}</a>
             @endif
         </div>
     </div>

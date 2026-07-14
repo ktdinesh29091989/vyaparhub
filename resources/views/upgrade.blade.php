@@ -9,7 +9,9 @@
 
     {{-- Current status --}}
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-        @if ($user->isPro())
+        @if ($user->isPro() && $user->plan_type === 'annual')
+            <p class="text-sm font-semibold text-emerald-600">💎 Pro Annual plan active until {{ $user->plan_expires_at->format('d M Y') }}</p>
+        @elseif ($user->isPro())
             <p class="text-sm font-semibold text-emerald-600">✨ Pro plan active until {{ $user->plan_expires_at->format('d M Y') }}</p>
         @else
             <p class="text-sm font-semibold text-slate-600">You are on the Free plan</p>

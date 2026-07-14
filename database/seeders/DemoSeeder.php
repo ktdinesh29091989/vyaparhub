@@ -26,6 +26,7 @@ class DemoSeeder extends Seeder
                 'password' => Hash::make('demo123'),
                 'email_verified_at' => now(),
                 'plan' => 'pro',
+                'plan_type' => 'annual',
                 'plan_expires_at' => now()->addYear(),
             ]
         );

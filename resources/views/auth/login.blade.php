@@ -19,7 +19,7 @@
 
         <div>
             <label for="email" class="block text-sm font-medium text-slate-700">Email address</label>
-            <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username"
+            <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" tabindex="1"
                    placeholder="you@business.in"
                    class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none @error('email') border-red-400 @enderror">
             @error('email')
@@ -30,9 +30,9 @@
         <div>
             <div class="flex items-center justify-between">
                 <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
-                <a href="{{ route('password.request') }}" class="text-sm font-medium text-brand-600 hover:text-brand-700">Forgot password?</a>
+                <a href="{{ route('password.request') }}" class="text-sm font-medium text-brand-600 hover:text-brand-700" tabindex="3">Forgot password?</a>
             </div>
-            <input id="password" name="password" type="password" required autocomplete="current-password"
+            <input id="password" name="password" type="password" required autocomplete="current-password" tabindex="2"
                    placeholder="••••••••"
                    class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none @error('password') border-red-400 @enderror">
             @error('password')
