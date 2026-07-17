@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>P&L Report</title>
 <style>
-    body { font-family: sans-serif; font-size: 12px; color: #1e293b; margin: 24px; }
+    body { font-family: 'DejaVu Sans', sans-serif; font-size: 12px; color: #1e293b; margin: 24px; }
     h1 { font-size: 20px; margin: 0 0 2px; color: #db2777; }
     .subtitle { color: #64748b; margin-bottom: 20px; }
     .cards { width: 100%; border-collapse: separate; margin-bottom: 16px; }
