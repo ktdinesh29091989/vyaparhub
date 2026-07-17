@@ -41,4 +41,8 @@ return [
         'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
     ],
 
+    'plausible' => [
+        'domain' => env('PLAUSIBLE_DOMAIN'),
+    ],
+
 ];
