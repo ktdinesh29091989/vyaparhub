@@ -60,6 +60,15 @@
             </select>
         </div>
         <div>
+            <label class="block text-xs font-medium text-slate-500">Category</label>
+            <select name="category" class="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none">
+                <option value="">All categories</option>
+                @foreach ($categories as $slug => $label)
+                    <option value="{{ $slug }}" @selected(request('category') === $slug)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
             <label class="block text-xs font-medium text-slate-500">From</label>
             <input type="date" name="from" value="{{ request('from') }}"
                    class="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none">
@@ -70,7 +79,7 @@
                    class="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none">
         </div>
         <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">Filter</button>
-        @if(request()->hasAny(['search','channel','from','to']) || request('status'))
+        @if(request()->hasAny(['search','channel','category','from','to']) || request('status'))
             <a href="{{ route('orders.index') }}" class="px-2 py-2 text-sm text-slate-500 hover:text-slate-700">Clear</a>
         @endif
     </form>

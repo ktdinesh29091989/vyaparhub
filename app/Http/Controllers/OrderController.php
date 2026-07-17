@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Services\OrderManager;
 use App\Services\ProfitCalculator;
 use Illuminate\Http\Request;
@@ -43,16 +44,30 @@ class OrderController extends Controller
         // Totals across the FULL filtered set (not just the current page).
         $profit = app(ProfitCalculator::class);
         $filteredOrders = $this->filteredOrdersQuery($request, $user)->with('items')->get();
-        $filtered = [
-            'count' => $filteredOrders->count(),
-            ...$profit->aggregate($filteredOrders),
-        ];
+
+        $category = $request->string('category')->toString();
+        $category = array_key_exists($category, Product::CATEGORIES) ? $category : null;
+
+        if ($category) {
+            // Restrict the totals to just this category's line items, so a mixed-cart order
+            // (e.g. one Textile + one Cosmetics item) doesn't overstate the filtered total.
+            $categoryOf = $user->products()->pluck('category', 'id')->all();
+            $sums = $profit->byCategory($filteredOrders, $categoryOf)[$category]
+                ?? ['revenue' => 0.0, 'net_profit' => 0.0, 'units_sold' => 0];
+            $filtered = ['count' => $filteredOrders->count(), ...$sums];
+        } else {
+            $filtered = [
+                'count' => $filteredOrders->count(),
+                ...$profit->aggregate($filteredOrders),
+            ];
+        }
 
         return view('orders.index', [
             'orders' => $orders,
             'summary' => $summary,
             'filtered' => $filtered,
             'channels' => $user->channels()->orderBy('name')->get(),
+            'categories' => Product::CATEGORIES,
             'statuses' => Order::STATUSES,
             'statusPills' => self::STATUS_PILLS,
             'manualStatuses' => Order::MANUAL_STATUSES,
@@ -71,6 +86,11 @@ class OrderController extends Controller
         }
         if ($channelId = $request->integer('channel')) {
             $query->where('channel_id', $channelId);
+        }
+        if ($category = $request->string('category')->toString()) {
+            if (array_key_exists($category, Product::CATEGORIES)) {
+                $query->whereHas('items.product', fn ($q) => $q->where('category', $category));
+            }
         }
         if ($search = $request->string('search')->trim()->toString()) {
             $query->where(function ($q) use ($search) {

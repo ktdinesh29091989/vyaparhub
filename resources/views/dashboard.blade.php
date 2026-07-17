@@ -5,8 +5,29 @@
 
 @section('content')
     <div class="mb-6">
-        <h2 class="text-xl font-bold text-slate-900">Namaste, {{ auth()->user()->name }} 👋</h2>
-        <p class="mt-1 text-sm text-slate-500">Here's your live inventory snapshot.</p>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Namaste, {{ auth()->user()->name }} 👋</h2>
+                <p class="mt-1 text-sm text-slate-500">Here's your live inventory snapshot.</p>
+            </div>
+            @if (count($categoryBreakdown) > 1)
+                <form method="GET" class="flex items-end gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500">Filter by category</label>
+                        <select name="category" class="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none">
+                            <option value="">All categories</option>
+                            @foreach (\App\Models\Product::CATEGORIES as $slug => $label)
+                                <option value="{{ $slug }}" @selected($selectedCategory === $slug)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">Filter</button>
+                    @if ($selectedCategory)
+                        <a href="{{ route('dashboard') }}" class="px-2 py-2 text-sm text-slate-500 hover:text-slate-700">Clear</a>
+                    @endif
+                </form>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
@@ -48,6 +69,14 @@
             </div>
         </div>
     </div>
+
+    @if (count($categoryBreakdown) > 1)
+    {{-- Profit-by-category breakdown (this month) --}}
+    <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="font-semibold text-slate-900">Profit by category — this month</h3>
+        <canvas id="categoryChart" height="180" class="mt-4"></canvas>
+    </div>
+    @endif
 
     {{-- Low stock alert list --}}
     <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -111,8 +140,11 @@
         @endforelse
     </div>
 
-    @if (auth()->user()->isPro())
+    @if (auth()->user()->isPro() || count($categoryBreakdown) > 1)
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    @endif
+
+    @if (auth()->user()->isPro())
     <script>
         new Chart(document.getElementById('revenueChart'), {
             type: 'bar',
@@ -128,6 +160,28 @@
             options: {
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, ticks: { callback: (v) => '₹' + v } } },
+            },
+        });
+    </script>
+    @endif
+
+    @if (count($categoryBreakdown) > 1)
+    <script>
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(array_column($categoryBreakdown, 'label')) !!},
+                datasets: [{
+                    label: 'Net profit',
+                    data: {!! json_encode(array_column($categoryBreakdown, 'net_profit')) !!},
+                    backgroundColor: {!! json_encode(array_column($categoryBreakdown, 'color')) !!},
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { ticks: { callback: (v) => '₹' + v } } },
             },
         });
     </script>

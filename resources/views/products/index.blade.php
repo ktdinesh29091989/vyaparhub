@@ -3,6 +3,18 @@
 @section('title', 'Products & Stock')
 @section('heading', 'Products & Stock')
 
+@php
+    $categoryBadgeClasses = [
+        'textile' => 'bg-purple-100 text-purple-700',
+        'cosmetics' => 'bg-pink-100 text-pink-700',
+        'footwear' => 'bg-amber-100 text-amber-700',
+        'jewelry' => 'bg-yellow-100 text-yellow-800',
+        'kids_wear' => 'bg-sky-100 text-sky-700',
+        'electronics_accessories' => 'bg-indigo-100 text-indigo-700',
+        'other' => 'bg-slate-100 text-slate-600',
+    ];
+@endphp
+
 @section('content')
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" class="flex flex-1 items-center gap-2 sm:max-w-md">
@@ -26,6 +38,7 @@
                     <tr>
                         <th class="px-5 py-3">Product</th>
                         <th class="px-5 py-3">Category</th>
+                        <th class="px-5 py-3">Type</th>
                         <th class="px-5 py-3 text-right">Cost</th>
                         <th class="px-5 py-3 text-right">Sell</th>
                         <th class="px-5 py-3 text-right">Margin</th>
@@ -40,7 +53,12 @@
                                 <p class="font-medium text-slate-800">{{ $product->name }}</p>
                                 <p class="text-xs text-slate-400">{{ $product->sku ?? 'no SKU' }}</p>
                             </td>
-                            <td class="px-5 py-3 text-slate-600">{{ $product->category ?? '—' }}</td>
+                            <td class="px-5 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $categoryBadgeClasses[$product->category] ?? 'bg-slate-100 text-slate-600' }}">
+                                    {{ \App\Models\Product::CATEGORIES[$product->category] ?? $product->category }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-slate-600">{{ $product->product_type ?? '—' }}</td>
                             <td class="px-5 py-3 text-right text-slate-600">{{ rupees($product->cost_price) }}</td>
                             <td class="px-5 py-3 text-right text-slate-600">{{ rupees($product->selling_price) }}</td>
                             <td class="px-5 py-3 text-right font-medium {{ $product->unit_margin >= 0 ? 'text-emerald-600' : 'text-red-600' }}">
@@ -66,7 +84,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center">
+                            <td colspan="8" class="px-5 py-12 text-center">
                                 <p class="text-slate-400">No products yet.</p>
                                 <a href="{{ route('products.create') }}" class="mt-3 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">+ Add your first product</a>
                             </td>

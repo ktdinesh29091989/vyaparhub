@@ -55,7 +55,7 @@ class InventoryAnalyzer
                 'id' => $p->id,
                 'name' => $p->name,
                 'sku' => $p->sku,
-                'category' => $p->category,
+                'category' => $p->product_type,
                 'stock' => $p->stock,
                 'cost_price' => (float) $p->cost_price,
                 'sold_window' => $soldWindow,

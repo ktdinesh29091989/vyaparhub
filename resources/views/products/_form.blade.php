@@ -1,6 +1,7 @@
 @php
     $isEdit = isset($product);
     $val = fn ($key, $default = '') => old($key, $isEdit ? $product->{$key} : $default);
+    $customAttributesJson = old('custom_attributes', $isEdit ? ($product->custom_attributes ?? []) : []);
 @endphp
 
 @if ($errors->any())
@@ -9,7 +10,12 @@
     </div>
 @endif
 
-<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2"
+     x-data="{
+        category: '{{ $val('category', 'textile') }}',
+        fields: {{ Js::from($categoryFields) }},
+        customAttributes: {{ Js::from($customAttributesJson) }}
+     }">
     <div class="lg:col-span-2">
         <label class="block text-sm font-medium text-slate-700">Product name <span class="text-red-500">*</span></label>
         <input name="name" value="{{ $val('name') }}" required placeholder="Banarasi Silk Saree - Red"
@@ -25,13 +31,46 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-slate-700">Category</label>
-        <select name="category" class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
-            <option value="">— Select —</option>
-            @foreach ($categories as $cat)
-                <option value="{{ $cat }}" @selected($val('category') === $cat)>{{ $cat }}</option>
+        <label class="block text-sm font-medium text-slate-700">Category <span class="text-red-500">*</span></label>
+        <select name="category" x-model="category"
+                class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none @error('category') border-red-400 @enderror">
+            @foreach ($categories as $slug => $label)
+                <option value="{{ $slug }}" @selected($val('category', 'textile') === $slug)>{{ $label }}</option>
             @endforeach
         </select>
+        @error('category') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div x-show="category === 'textile'" x-cloak>
+        <label class="block text-sm font-medium text-slate-700">Product type</label>
+        <select name="product_type" :disabled="category !== 'textile'"
+                class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <option value="">— Select —</option>
+            @foreach ($productTypes as $type)
+                <option value="{{ $type }}" @selected($val('product_type') === $type)>{{ $type }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="lg:col-span-2" x-show="(fields[category] || []).length > 0" x-cloak>
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p class="mb-3 text-sm font-medium text-slate-700">Category details</p>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <template x-for="field in (fields[category] || [])" :key="field.key">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700" x-text="field.label"></label>
+                        <template x-if="field.type === 'textarea'">
+                            <textarea :name="`custom_attributes[${field.key}]`" x-model="customAttributes[field.key]" rows="2"
+                                      class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"></textarea>
+                        </template>
+                        <template x-if="field.type !== 'textarea'">
+                            <input :type="field.type" :name="`custom_attributes[${field.key}]`" x-model="customAttributes[field.key]"
+                                   class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
     </div>
 
     <div>

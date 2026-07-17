@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -30,14 +31,18 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('products.create', ['categories' => Product::CATEGORIES]);
+        return view('products.create', [
+            'categories' => Product::CATEGORIES,
+            'productTypes' => Product::PRODUCT_TYPES,
+            'categoryFields' => Product::CATEGORY_FIELDS,
+        ]);
     }
 
     /** Column header aliases accepted in an uploaded CSV, mapped to product fields. */
     private const CSV_COLUMN_ALIASES = [
         'name' => ['product', 'product name', 'name'],
         'sku' => ['sku', 'code', 'sku / code'],
-        'category' => ['category'],
+        'product_type' => ['category'],
         'source_location' => ['where to source in salem', 'source location', 'source', 'where to source'],
         'cost_price' => ['mill/wholesale price', 'mill / wholesale price', 'cost price', 'cost price (rs)', 'cost'],
         'selling_price' => ['sell price (meesho/local)', 'sell price', 'selling price', 'selling price (rs)'],
@@ -140,7 +145,7 @@ class ProductController extends Controller
             $request->user()->products()->create([
                 'name' => $data['name'],
                 'sku' => $data['sku'] ?? null ?: null,
-                'category' => $data['category'] ?? null ?: null,
+                'product_type' => $data['product_type'] ?? null ?: null,
                 'source_location' => $data['source_location'] ?? null ?: null,
                 'cost_price' => $costPrice,
                 'selling_price' => $sellingPrice,
@@ -235,6 +240,8 @@ class ProductController extends Controller
         return view('products.edit', [
             'product' => $product,
             'categories' => Product::CATEGORIES,
+            'productTypes' => Product::PRODUCT_TYPES,
+            'categoryFields' => Product::CATEGORY_FIELDS,
             'movements' => $product->movements()->limit(15)->get(),
         ]);
     }
@@ -295,10 +302,13 @@ class ProductController extends Controller
 
     private function validateProduct(Request $request, ?Product $product = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:100'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'product_type' => ['nullable', 'string', 'max:100'],
+            'category' => ['required', 'string', Rule::in(array_keys(Product::CATEGORIES))],
+            'custom_attributes' => ['nullable', 'array'],
+            'custom_attributes.*' => ['nullable', 'string', 'max:255'],
             'source_location' => ['nullable', 'string', 'max:255'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
@@ -306,6 +316,21 @@ class ProductController extends Controller
             'stock' => ['nullable', 'integer', 'min:0'],
             'stock_threshold' => ['required', 'integer', 'min:0'],
         ]);
+
+        if (array_key_exists('custom_attributes', $data)) {
+            $data['custom_attributes'] = array_filter(
+                $data['custom_attributes'],
+                fn ($v) => $v !== null && $v !== ''
+            ) ?: null;
+        }
+
+        // The "Product type" field is only shown/submitted for Textile; explicitly clear it
+        // for every other category so a stale value can't survive a category switch on update().
+        if ($data['category'] !== 'textile') {
+            $data['product_type'] = null;
+        }
+
+        return $data;
     }
 
     private function authorizeProduct(Request $request, Product $product): void

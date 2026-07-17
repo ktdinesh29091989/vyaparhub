@@ -173,7 +173,7 @@ class OrderImportController extends Controller
         return $user->products()->create([
             'name' => $name !== '' ? $name : $sku,
             'sku' => $sku !== '' ? $sku : null,
-            'category' => 'Imported',
+            'product_type' => 'Imported',
             'cost_price' => 0,
             'selling_price' => 0,
             'gst_percent' => 5,

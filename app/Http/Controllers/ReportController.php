@@ -250,7 +250,7 @@ class ReportController extends Controller
                 'product' => $p,
                 'name' => $p->name,
                 'sku' => $p->sku,
-                'category' => $p->category,
+                'category' => $p->product_type,
                 'stock' => $p->stock,
                 'threshold' => $p->stock_threshold,
                 'status' => $p->stock === 0 ? 'out' : ($p->stock <= $p->stock_threshold ? 'low' : 'healthy'),

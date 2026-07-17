@@ -151,4 +151,27 @@ class ProfitCalculator
 
         return $rows;
     }
+
+    /**
+     * Aggregate revenue/profit per category across a collection of orders (each with items loaded).
+     * $categoryOf maps product_id => category slug. Items whose product has no known category
+     * (e.g. deleted) are grouped under 'other'. Uses the same per-item breakdown as forOrder(),
+     * so this is purely a different grouping of the identical numbers — no new formula.
+     */
+    public function byCategory($orders, array $categoryOf): array
+    {
+        $sums = [];
+
+        foreach ($orders as $order) {
+            foreach ($this->forOrder($order)['items'] as $item) {
+                $cat = $categoryOf[$item['product_id']] ?? 'other';
+                $sums[$cat] ??= ['revenue' => 0.0, 'net_profit' => 0.0, 'units_sold' => 0];
+                $sums[$cat]['revenue'] += $item['revenue'];
+                $sums[$cat]['net_profit'] += $item['net_profit'];
+                $sums[$cat]['units_sold'] += $item['sold_qty'];
+            }
+        }
+
+        return $sums;
+    }
 }
