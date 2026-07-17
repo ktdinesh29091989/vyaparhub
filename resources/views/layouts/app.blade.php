@@ -36,6 +36,9 @@
                 $nav[] = ['reports.inventory', 'Stock Health', '📈'];
                 $nav[] = ['channels.index', 'Sales Channels', '🛍️'];
             }
+            if (auth()->user()->is_admin) {
+                $nav[] = ['admin.index', 'Admin', '🛠️'];
+            }
         @endphp
 
         <nav class="mt-4 space-y-1 px-3">

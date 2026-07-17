@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Razorpay\Api\Api;
@@ -68,14 +69,27 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $user->activateProPlan($days, $planType);
 
-        // Best-effort: link a Razorpay customer record; never block the upgrade on this.
+        // Best-effort: link the Razorpay customer record and log the payment for the admin
+        // revenue view; never block the upgrade itself on either of these.
         try {
             $payment = $this->api()->payment->fetch($validated['razorpay_payment_id']);
+
             if (! empty($payment['customer_id'])) {
                 $user->forceFill(['razorpay_customer_id' => $payment['customer_id']])->save();
             }
+
+            Payment::firstOrCreate(
+                ['razorpay_payment_id' => $payment['id']],
+                [
+                    'user_id' => $user->id,
+                    'razorpay_order_id' => $validated['razorpay_order_id'],
+                    'plan_type' => $planType,
+                    'amount' => $payment['amount'] / 100,
+                    'status' => $payment['status'] ?? 'captured',
+                ]
+            );
         } catch (\Throwable $e) {
-            // ignore — plan is already active regardless of customer-id linkage
+            // ignore — plan is already active regardless of logging/linkage succeeding
         }
 
         return redirect()->route('dashboard')
@@ -112,6 +126,37 @@ class SubscriptionController extends Controller
             if ($userId && ($user = User::find($userId))) {
                 // Idempotent: safe to call again even if the popup callback already activated the plan.
                 $user->activateProPlan($days, $planType);
+
+                // Idempotent via the unique razorpay_payment_id: safe even if verify() already logged it.
+                Payment::firstOrCreate(
+                    ['razorpay_payment_id' => $entity['id']],
+                    [
+                        'user_id' => $user->id,
+                        'razorpay_order_id' => $entity['order_id'] ?? null,
+                        'plan_type' => $planType,
+                        'amount' => ($entity['amount'] ?? 0) / 100,
+                        'status' => $entity['status'] ?? 'captured',
+                    ]
+                );
+            }
+        } elseif (($payload['event'] ?? null) === 'payment.failed') {
+            // Logged for the admin conversion view only — never activates a plan.
+            $entity = $payload['payload']['payment']['entity'] ?? [];
+            $notes = $entity['notes'] ?? [];
+            $userId = $notes['user_id'] ?? null;
+            $planType = ($notes['plan_type'] ?? 'monthly') === 'annual' ? 'annual' : 'monthly';
+
+            if ($userId && ($user = User::find($userId))) {
+                Payment::firstOrCreate(
+                    ['razorpay_payment_id' => $entity['id']],
+                    [
+                        'user_id' => $user->id,
+                        'razorpay_order_id' => $entity['order_id'] ?? null,
+                        'plan_type' => $planType,
+                        'amount' => ($entity['amount'] ?? 0) / 100,
+                        'status' => 'failed',
+                    ]
+                );
             }
         }
 

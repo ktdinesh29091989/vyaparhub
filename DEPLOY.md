@@ -74,7 +74,7 @@ Not used by this app (leftover Laravel skeleton vars) — safe to leave blank: `
 
 1. Razorpay Dashboard → Settings → Webhooks → **Add New Webhook**.
 2. Webhook URL: `https://yourdomain.com/razorpay/webhook`
-3. Active events: at minimum `payment.captured`.
+3. Active events: `payment.captured` (activates Pro) and `payment.failed` (logged for the admin conversion view — never activates anything).
 4. Set a webhook secret and put the same value in `RAZORPAY_WEBHOOK_SECRET` on the server — `SubscriptionController::webhook()` verifies every incoming call against this secret and rejects anything that doesn't match (`app/Http/Controllers/SubscriptionController.php`). This route is intentionally CSRF-exempt (`bootstrap/app.php`) since Razorpay can't send a CSRF token — signature verification is what protects it instead.
 5. Send a test webhook from the Razorpay dashboard and confirm it returns `{"status":"ok"}`.
 
@@ -100,6 +100,16 @@ php artisan db:seed --class=DemoSeeder
 ```
 
 Creates `demo@vyaparhub.in` / `demo123` with an active Pro plan, 8 realistic Salem-textile products, and 15 orders (across Meesho/WhatsApp/Local/Amazon, including 3 returns) so a visitor sees a fully populated dashboard immediately. Safe to re-run — it's idempotent (won't duplicate products or orders on a second run).
+
+## 6b. Admin access
+
+Grant yourself (or anyone) access to `/admin` — no separate login, it's the same account with an `is_admin` flag:
+
+```bash
+railway run php artisan admin:promote you@example.com
+```
+
+Prompts for confirmation before applying; add `--force` to skip the prompt, or `--revoke` to remove admin access. Safe to re-run — it's a no-op if the target state is already reached.
 
 ## 7. Post-deploy smoke test
 

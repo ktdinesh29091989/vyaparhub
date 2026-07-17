@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'plan.gate' => \App\Http\Middleware\PlanGate::class,
+            'admin' => \App\Http\Middleware\EnsureIsAdmin::class,
         ]);
 
         $middleware->appendToGroup('web', \App\Http\Middleware\CheckPlanStatus::class);
