@@ -4,7 +4,9 @@
 
 @section('content')
     <div class="text-center">
-        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-3xl">🧵</div>
+        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 p-3">
+            <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-full w-full object-contain">
+        </div>
         <h2 class="text-2xl font-bold text-slate-900">Welcome to VyaparHub!</h2>
         <p class="mt-3 text-sm text-slate-500">
             Add your first product to get started. Once it's in, you'll see it on your dashboard

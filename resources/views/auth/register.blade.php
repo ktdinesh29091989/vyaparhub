@@ -24,7 +24,7 @@
         <div>
             <label for="business_name" class="block text-sm font-medium text-slate-700">Business name</label>
             <input id="business_name" name="business_name" type="text" value="{{ old('business_name') }}" required autocomplete="organization"
-                   placeholder="Dinesh Tex"
+                   placeholder="Dinesh Enterprises"
                    class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none @error('business_name') border-red-400 @enderror">
             @error('business_name')
                 <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>

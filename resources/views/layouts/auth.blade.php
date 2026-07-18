@@ -34,17 +34,19 @@
             <div class="absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-fuchsia-400/20 blur-3xl"></div>
 
             <div class="relative flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-2xl backdrop-blur">🧵</div>
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white p-2">
+                    <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-full w-full object-contain">
+                </div>
                 <span class="text-xl font-extrabold tracking-tight">VyaparHub</span>
             </div>
 
             <div class="relative max-w-md">
                 <h1 class="text-4xl font-extrabold leading-tight">
-                    Run your textile business like a pro.
+                    Run your business like a pro.
                 </h1>
                 <p class="mt-4 text-lg text-brand-100">
                     Inventory, orders &amp; profit — one clean dashboard built for Meesho,
-                    Flipkart &amp; WhatsApp sellers across India.
+                    Flipkart &amp; WhatsApp sellers across India, whatever you sell.
                 </p>
 
                 <ul class="mt-8 space-y-4">
@@ -75,7 +77,7 @@
         <div class="flex min-h-screen items-center justify-center px-6 py-12 lg:min-h-full">
             <div class="w-full max-w-md">
                 <div class="mb-8 flex items-center gap-3 lg:hidden">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-xl text-white">🧵</div>
+                    <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-10 w-10 object-contain">
                     <span class="text-lg font-extrabold tracking-tight text-slate-900">VyaparHub</span>
                 </div>
 

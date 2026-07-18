@@ -30,7 +30,7 @@
     <header class="border-b border-slate-100">
         <div class="mx-auto flex h-16 max-w-3xl items-center px-4 sm:px-6">
             <a href="{{ route('landing') }}" class="flex items-center gap-2.5">
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-lg text-white">🧵</div>
+                <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-9 w-9 object-contain">
                 <span class="text-lg font-extrabold tracking-tight text-slate-900">VyaparHub</span>
             </a>
         </div>
@@ -73,7 +73,7 @@
             <section>
                 <h2 class="text-lg font-bold text-slate-900">Contact</h2>
                 <p class="mt-2">Questions about this policy or your data? Email us at
-                    <a href="mailto:support@vyaparhub.in" class="font-medium text-brand-600 hover:text-brand-700">support@vyaparhub.in</a>.
+                    <a href="mailto:vyaparhubofficial@gmail.com" class="font-medium text-brand-600 hover:text-brand-700">vyaparhubofficial@gmail.com</a>.
                 </p>
             </section>
         </div>

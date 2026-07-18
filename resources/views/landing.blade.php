@@ -31,7 +31,7 @@
     <header class="sticky top-0 z-30 border-b border-slate-100 bg-white/90 backdrop-blur">
         <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
             <a href="{{ route('landing') }}" class="flex items-center gap-2.5">
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-lg text-white">🧵</div>
+                <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-9 w-9 object-contain">
                 <span class="text-lg font-extrabold tracking-tight text-slate-900">VyaparHub</span>
             </a>
             <nav class="hidden items-center gap-8 sm:flex">
@@ -51,7 +51,7 @@
             Track every order.<br class="hidden sm:block"> Know your real profit.
         </h1>
         <p class="mx-auto mt-5 max-w-2xl text-base text-slate-600 sm:text-lg">
-            VyaparHub is the simplest tool for Indian textile sellers to manage stock, track orders across Meesho, Amazon, WhatsApp and local sales — and see their exact profit in one place.
+            VyaparHub is the simplest tool for Indian sellers — textile, footwear, cosmetics, jewelry and more — to manage stock, track orders across Meesho, Amazon, WhatsApp and local sales, and see their exact profit in one place.
         </p>
         <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a href="{{ route('register') }}" class="w-full rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 sm:w-auto">
@@ -70,7 +70,7 @@
                 <div class="rounded-2xl border border-slate-200 bg-white p-6">
                     <div class="text-3xl">📦</div>
                     <h3 class="mt-4 text-lg font-bold text-slate-900">Smart Stock Management</h3>
-                    <p class="mt-2 text-sm text-slate-600">Know exactly how many sarees, kurtis and dhotis you have. Get alerts before you run out. Log every restock in seconds.</p>
+                    <p class="mt-2 text-sm text-slate-600">Know exactly how much stock you have — sarees, sandals, skincare, or anything else you sell. Get alerts before you run out. Log every restock in seconds.</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-6">
                     <div class="text-3xl">📊</div>
@@ -89,11 +89,11 @@
     {{-- Social proof --}}
     <section class="py-16 sm:py-20">
         <div class="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h2 class="text-2xl font-extrabold text-slate-900 sm:text-3xl">Built for India's textile sellers</h2>
+            <h2 class="text-2xl font-extrabold text-slate-900 sm:text-3xl">Built for India's multi-category sellers</h2>
             <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
                 <div class="rounded-2xl bg-brand-50 p-6">
                     <p class="text-2xl font-extrabold text-brand-700">Any Category</p>
-                    <p class="mt-1 text-sm font-medium text-slate-600">Sarees, Kurtis, Lehengas &amp; more</p>
+                    <p class="mt-1 text-sm font-medium text-slate-600">Textile, Footwear, Cosmetics, Jewelry &amp; more</p>
                 </div>
                 <div class="rounded-2xl bg-brand-50 p-6">
                     <p class="text-2xl font-extrabold text-brand-700">Meesho, Amazon, WhatsApp &amp; More</p>
@@ -183,7 +183,7 @@
                 <a href="{{ route('login') }}" class="hover:text-slate-800">Login</a>
                 <a href="{{ route('register') }}" class="hover:text-slate-800">Register</a>
                 <a href="{{ route('privacy') }}" class="hover:text-slate-800">Privacy Policy</a>
-                <a href="mailto:support@vyaparhub.in" class="hover:text-slate-800">Contact</a>
+                <a href="mailto:vyaparhubofficial@gmail.com" class="hover:text-slate-800">Contact</a>
             </div>
             <p class="text-sm text-slate-500">Made in India 🇮🇳</p>
         </div>

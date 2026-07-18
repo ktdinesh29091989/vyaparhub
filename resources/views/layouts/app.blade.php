@@ -20,7 +20,9 @@
     <aside class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transform bg-slate-900 text-slate-300 transition-transform lg:static lg:translate-x-0 print:hidden"
            :class="sidebar && 'translate-x-0'">
         <div class="flex h-16 items-center gap-2.5 px-6">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-lg text-white">🧵</div>
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white p-1.5">
+                <img src="{{ asset('images/vyaparhub-logo.png') }}" alt="VyaparHub" class="h-full w-full object-contain">
+            </div>
             <span class="text-lg font-extrabold tracking-tight text-white">VyaparHub</span>
         </div>
 
