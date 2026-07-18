@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\PlanGrant;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -59,5 +60,46 @@ class AdminController extends Controller
         $payments = $query->paginate(20)->withQueryString();
 
         return view('admin.payments', compact('payments', 'status'));
+    }
+
+    public function grantPro(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'days' => ['required', 'integer', 'min:1', 'max:3650'],
+            'plan_type' => ['required', 'in:monthly,annual'],
+            'reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        $previousPlan = $user->plan;
+        $previousExpiresAt = $user->plan_expires_at;
+
+        $user->grantOrExtendPro($validated['days'], $validated['plan_type']);
+
+        PlanGrant::create([
+            'user_id' => $user->id,
+            'granted_by' => $request->user()->id,
+            'previous_plan' => $previousPlan,
+            'previous_expires_at' => $previousExpiresAt,
+            'new_plan' => 'pro',
+            'new_plan_type' => $validated['plan_type'],
+            'new_expires_at' => $user->plan_expires_at,
+            'days_granted' => $validated['days'],
+            'reason' => $validated['reason'],
+        ]);
+
+        return back()->with('status', "Granted {$validated['days']} days of Pro to {$user->name} — new expiry ".$user->plan_expires_at->format('d M Y').'.');
+    }
+
+    public function grants(Request $request)
+    {
+        $filterUser = $request->filled('user_id') ? User::find($request->integer('user_id')) : null;
+
+        $grants = PlanGrant::with(['user', 'admin'])
+            ->when($filterUser, fn ($q) => $q->where('user_id', $filterUser->id))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.grants', compact('grants', 'filterUser'));
     }
 }

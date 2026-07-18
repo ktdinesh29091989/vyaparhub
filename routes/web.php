@@ -111,5 +111,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('users', [AdminController::class, 'users'])->name('users');
+    Route::post('users/{user}/grant-pro', [AdminController::class, 'grantPro'])->name('users.grant-pro');
+    Route::get('grants', [AdminController::class, 'grants'])->name('grants');
     Route::get('payments', [AdminController::class, 'payments'])->name('payments');
 });

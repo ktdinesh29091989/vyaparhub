@@ -90,6 +90,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Manual admin grant/extend (off-platform payments). Adds days on top of the current
+     * expiry if Pro is still active, otherwise grants fresh from today — unlike
+     * activateProPlan(), which always resets to now()+$days regardless of remaining time.
+     */
+    public function grantOrExtendPro(int $days, string $planType = 'monthly'): void
+    {
+        $base = $this->isPro() ? $this->plan_expires_at : now();
+
+        $this->forceFill([
+            'plan' => 'pro',
+            'plan_expires_at' => $base->copy()->addDays($days),
+            'plan_type' => $planType,
+        ])->save();
+    }
+
+    public function planGrants(): HasMany
+    {
+        return $this->hasMany(PlanGrant::class);
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
