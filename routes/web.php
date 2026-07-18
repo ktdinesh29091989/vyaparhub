@@ -27,7 +27,7 @@ Route::get('/', function () {
 
 Route::view('privacy', 'privacy')->name('privacy');
 
-// Guest-only routes (registration, login, password reset)
+// Guest-only routes (registration, login, forgot-password request)
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
@@ -37,9 +37,15 @@ Route::middleware('guest')->group(function () {
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 });
+
+// Deliberately NOT behind 'guest' middleware — the emailed reset link must work even if the
+// browser has an active session (e.g. a stale/different login), otherwise 'guest' silently
+// bounces the click straight to /dashboard before the "new password" form ever renders.
+// NewPasswordController::store() resets the target user found via the signed token/email in
+// the form, independent of whoever (if anyone) is currently authenticated in this session.
+Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 
 // Razorpay calls this directly — no session, no CSRF token available (exempted in bootstrap/app.php).
 Route::post('razorpay/webhook', [SubscriptionController::class, 'webhook'])->name('razorpay.webhook');
