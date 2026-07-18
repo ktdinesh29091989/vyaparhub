@@ -43,7 +43,8 @@ class ProductController extends Controller
     private const CSV_COLUMN_ALIASES = [
         'name' => ['product', 'product name', 'name'],
         'sku' => ['sku', 'code', 'sku / code'],
-        'product_type' => ['category'],
+        'category' => ['category', 'business category', 'vertical'],
+        'product_type' => ['product type', 'garment type', 'type'],
         'source_location' => ['where to source in salem', 'source location', 'source', 'where to source'],
         'cost_price' => ['mill/wholesale price', 'mill / wholesale price', 'cost price', 'cost price (rs)', 'cost'],
         'selling_price' => ['sell price (meesho/local)', 'sell price', 'selling price', 'selling price (rs)'],
@@ -56,17 +57,19 @@ class ProductController extends Controller
     public function downloadSampleCsv()
     {
         $rows = [
-            ['Product', 'SKU', 'Category', 'Where to source in Salem', 'Mill/wholesale price', 'Sell price (Meesho/local)', 'GST %', 'Stock', 'Low stock threshold'],
-            ['Elampillai cotton silk saree (plain/emboss - everyday wear)', 'ELM-COT-01', 'Saree', 'Elampillai weavers direct', '400-480', '799-950', 5, 20, 5],
-            ['Elampillai real zari silk saree (festival / wedding)', 'ELM-ZARI-01', 'Saree', 'Kirupa Textile, Elampillai', '550-650', '1100-1600', 5, 10, 3],
-            ['Salem Venpattu silk saree (GI certified - premium)', 'SLM-VEN-01', 'Saree', 'Ammapet Weavers Co-op', '800-1200', '1800-2800', 5, 8, 2],
-            ['Cotton kurti (readymade) - daily wear', 'KUR-COT-01', 'Kurti', 'Sri Lakshminarayana Tex, Salem', '180-280', '399-699', 5, 30, 10],
-            ["Men's cotton shirt - casual / formal", 'SHIRT-CAS-01', 'Other', 'Shevapet Market, Salem', '150-220', '349-550', 5, 25, 8],
-            ["Men's cotton T-shirt - plain + printed", 'TSHIRT-01', 'Other', 'Tirupur agents (60km from Salem)', '80-130', '199-349', 5, 40, 10],
-            ["Men's dhoti (cotton) - Salem specialty", 'DHOTI-01', 'Other', 'Paramparaa / local mill', '120-180', '299-450', 5, 15, 5],
-            ['Kids school uniform - Jan-June demand spike', 'UNIFORM-01', 'Other', 'Shevapet / local garment unit', '200-350', '450-750', 5, 20, 5],
-            ['Dress material (churidar) - unstitched', 'CHURI-01', 'Suit', 'Shevapet textile market', '200-350', '499-799', 5, 18, 5],
-            ['Blouse material / fabric roll - sell by metre', 'BLOUSE-01', 'Other', 'Shevapet fabric market', '60-120', '150-280', 5, 50, 15],
+            ['Product', 'SKU', 'Category', 'Product Type', 'Where to source in Salem', 'Mill/wholesale price', 'Sell price (Meesho/local)', 'GST %', 'Stock', 'Low stock threshold'],
+            ['Elampillai cotton silk saree (plain/emboss - everyday wear)', 'ELM-COT-01', 'Textile', 'Saree', 'Elampillai weavers direct', 440, 875, 5, 20, 5],
+            ['Elampillai real zari silk saree (festival / wedding)', 'ELM-ZARI-01', 'Textile', 'Saree', 'Kirupa Textile, Elampillai', 600, 1350, 5, 10, 3],
+            ['Salem Venpattu silk saree (GI certified - premium)', 'SLM-VEN-01', 'Textile', 'Saree', 'Ammapet Weavers Co-op', 1000, 2300, 5, 8, 2],
+            ['Cotton kurti (readymade) - daily wear', 'KUR-COT-01', 'Textile', 'Kurti', 'Sri Lakshminarayana Tex, Salem', 230, 549, 5, 30, 10],
+            ["Men's cotton shirt - casual / formal", 'SHIRT-CAS-01', 'Textile', 'Other', 'Shevapet Market, Salem', 185, 450, 5, 25, 8],
+            ["Men's cotton T-shirt - plain + printed", 'TSHIRT-01', 'Textile', 'Other', 'Tirupur agents (60km from Salem)', 105, 275, 5, 40, 10],
+            ["Men's dhoti (cotton) - Salem specialty", 'DHOTI-01', 'Textile', 'Other', 'Paramparaa / local mill', 150, 375, 5, 15, 5],
+            ['Kids school uniform - Jan-June demand spike', 'UNIFORM-01', 'Textile', 'Other', 'Shevapet / local garment unit', 275, 600, 5, 20, 5],
+            ['Dress material (churidar) - unstitched', 'CHURI-01', 'Textile', 'Suit', 'Shevapet textile market', 275, 650, 5, 18, 5],
+            ['Blouse material / fabric roll - sell by metre', 'BLOUSE-01', 'Textile', 'Other', 'Shevapet fabric market', 90, 215, 5, 50, 15],
+            ['Ladies casual sandals - size 36-40 mix', 'SNDL-01', 'Footwear', '', 'Salem footwear wholesale market', 185, 425, 5, 25, 8],
+            ['Herbal face cream - 50g jar', 'CREAM-01', 'Cosmetics', '', 'Local cosmetics distributor, Salem', 75, 175, 18, 40, 10],
         ];
 
         return $this->streamCsv('salem-products-sample.csv', $rows);
@@ -76,7 +79,7 @@ class ProductController extends Controller
     public function downloadTemplateCsv()
     {
         $rows = [
-            ['Product', 'SKU', 'Category', 'Where to source in Salem', 'Mill/wholesale price', 'Sell price (Meesho/local)', 'GST %', 'Stock', 'Low stock threshold'],
+            ['Product', 'SKU', 'Category', 'Product Type', 'Where to source in Salem', 'Mill/wholesale price', 'Sell price (Meesho/local)', 'GST %', 'Stock', 'Low stock threshold'],
         ];
 
         return $this->streamCsv('product-import-template.csv', $rows);
@@ -147,14 +150,32 @@ class ProductController extends Controller
             $sellingPrice = $this->parseMoney($data['selling_price'] ?? null);
 
             if ($costPrice === null || $sellingPrice === null) {
-                $skipped[] = "Row {$rowNumber} ({$data['name']}): missing/invalid cost or selling price.";
+                $problems = [];
+                if ($costPrice === null) {
+                    $problems[] = $this->priceProblemMessage('cost price', $data['cost_price'] ?? null);
+                }
+                if ($sellingPrice === null) {
+                    $problems[] = $this->priceProblemMessage('selling price', $data['selling_price'] ?? null);
+                }
+                $skipped[] = "Row {$rowNumber} ({$data['name']}): ".implode(' ', $problems);
                 continue;
             }
+
+            $categorySlug = $this->resolveCategorySlug($data['category'] ?? null);
+            if ($categorySlug === null) {
+                $skipped[] = "Row {$rowNumber} ({$data['name']}): unrecognized category \"{$data['category']}\". Use one of: ".implode(', ', Product::CATEGORIES).'.';
+                continue;
+            }
+
+            // Product type (garment sub-type) only applies to the Textile category — matches
+            // the same rule enforced on the manual add/edit form (validateProduct()).
+            $productType = $categorySlug === 'textile' ? ($data['product_type'] ?? null ?: null) : null;
 
             $request->user()->products()->create([
                 'name' => $data['name'],
                 'sku' => $data['sku'] ?? null ?: null,
-                'product_type' => $data['product_type'] ?? null ?: null,
+                'category' => $categorySlug,
+                'product_type' => $productType,
                 'source_location' => $data['source_location'] ?? null ?: null,
                 'cost_price' => $costPrice,
                 'selling_price' => $sellingPrice,
@@ -197,10 +218,51 @@ class ProductController extends Controller
             }
         }
 
+        // Backward compatibility: older CSVs (and the old sample/template) only had a single
+        // "Category" column meaning garment type (Saree/Kurti/...). If no "Product Type" column
+        // is present, treat that lone "Category" column as product_type instead of the new
+        // business-vertical category field, so pre-multi-category CSVs keep importing correctly.
+        if (! in_array('product_type', $map, true) && in_array('category', $map, true)) {
+            $map[array_search('category', $map, true)] = 'product_type';
+        }
+
         return $map;
     }
 
-    /** Parses "400", "₹400", "400-480" or "150-280/metre" into a single float (range midpoint). */
+    /**
+     * Resolves a CSV "Category" cell (accepts either the slug or the display label,
+     * case-insensitively) to a valid Product::CATEGORIES slug. Returns null if the cell has a
+     * value but it doesn't match anything, so the caller can skip the row instead of silently
+     * mis-categorizing it. A blank cell (column missing entirely, or old-style CSV) defaults to
+     * 'textile' — matches the products.category column default and keeps old CSVs working.
+     */
+    private function resolveCategorySlug(?string $value): ?string
+    {
+        $value = strtolower(trim((string) $value));
+
+        if ($value === '') {
+            return 'textile';
+        }
+
+        if (array_key_exists($value, Product::CATEGORIES)) {
+            return $value;
+        }
+
+        foreach (Product::CATEGORIES as $slug => $label) {
+            if (strtolower($label) === $value) {
+                return $slug;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Parses "400" or "₹400" (with optional thousands separators/spaces, or a trailing unit
+     * like "/metre") into a single float. Deliberately rejects ranges like "400-480" — a single
+     * exact number is required for cost/selling price so profit calculations aren't built on an
+     * averaged guess. Use priceProblemMessage() to explain a null result to the user.
+     */
     private function parseMoney(?string $value): ?float
     {
         if ($value === null || trim($value) === '') {
@@ -209,17 +271,24 @@ class ProductController extends Controller
 
         $clean = str_replace(['₹', ',', ' '], '', $value);
         $clean = preg_replace('#/.*$#', '', $clean); // drop trailing "/metre", "/piece" etc.
-        $clean = str_replace('—', '-', str_replace('–', '-', $clean)); // normalize en/em dash
-
-        if (str_contains($clean, '-')) {
-            [$low, $high] = array_pad(explode('-', $clean, 2), 2, null);
-            if (is_numeric($low) && is_numeric($high)) {
-                return round(((float) $low + (float) $high) / 2, 2);
-            }
-            $clean = $low;
-        }
 
         return is_numeric($clean) ? (float) $clean : null;
+    }
+
+    /** Explains why a cost/selling price cell failed to parse, distinguishing a range from other bad input. */
+    private function priceProblemMessage(string $field, ?string $value): string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return ucfirst($field).' is missing.';
+        }
+
+        if (preg_match('/\d\s*[-–—]\s*\d/', $value)) {
+            return "Price ranges aren't supported for {$field} (\"{$value}\") — enter a single exact number, e.g. \"440\" instead of \"400-480\".";
+        }
+
+        return "{$field} (\"{$value}\") is not a valid number.";
     }
 
     public function store(Request $request)
