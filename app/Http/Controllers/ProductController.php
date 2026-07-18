@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -111,6 +112,9 @@ class ProductController extends Controller
         $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
         $fieldForColumn = $this->mapHeaderToFields($header);
 
+        $isPro = $request->user()->isPro();
+        $remaining = $isPro ? null : max(0, User::FREE_PRODUCT_LIMIT - $request->user()->products()->count());
+
         $imported = 0;
         $skipped = [];
         $rowNumber = 1;
@@ -120,6 +124,11 @@ class ProductController extends Controller
 
             if (count(array_filter($row, fn ($v) => trim((string) $v) !== '')) === 0) {
                 continue; // blank line
+            }
+
+            if (! $isPro && $remaining <= 0) {
+                $skipped[] = "Row {$rowNumber}: Free plan limit of ".User::FREE_PRODUCT_LIMIT." products reached. Upgrade to Pro to import more.";
+                continue;
             }
 
             $data = [];
@@ -155,6 +164,9 @@ class ProductController extends Controller
             ]);
 
             $imported++;
+            if (! $isPro) {
+                $remaining--;
+            }
         }
 
         fclose($handle);

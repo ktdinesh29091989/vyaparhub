@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\User;
 use App\Services\OrderManager;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -64,7 +65,14 @@ class OrderImportController extends Controller
             $grouped[$number][] = $row;
         }
 
-        $report = ['orders' => 0, 'items' => 0, 'products_created' => 0, 'skipped' => 0, 'duplicates' => 0];
+        $report = ['orders' => 0, 'items' => 0, 'products_created' => 0, 'skipped' => 0, 'duplicates' => 0, 'plan_limited' => 0];
+        $rowErrors = [];
+
+        $isPro = $user->isPro();
+        $ordersRemaining = $isPro ? null : max(0, User::FREE_MONTHLY_ORDER_LIMIT - $user->orders()
+            ->whereBetween('order_date', [now()->startOfMonth(), now()->endOfMonth()])
+            ->count());
+        $productsRemaining = $isPro ? null : max(0, User::FREE_PRODUCT_LIMIT - $user->products()->count());
 
         // Skip order numbers already imported for this seller (idempotent re-imports).
         $existing = $user->orders()
@@ -75,6 +83,11 @@ class OrderImportController extends Controller
         foreach ($grouped as $number => $lines) {
             if ($existing->has($number)) {
                 $report['duplicates']++;
+                continue;
+            }
+
+            if (! $isPro && $ordersRemaining <= 0) {
+                $report['plan_limited']++;
                 continue;
             }
 
@@ -89,7 +102,7 @@ class OrderImportController extends Controller
                     continue;
                 }
 
-                $product = $this->resolveProduct($user, $sku, $name, $report);
+                $product = $this->resolveProduct($user, $sku, $name, $report, $isPro, $productsRemaining);
                 if (! $product) {
                     $report['skipped']++;
                     continue;
@@ -106,23 +119,40 @@ class OrderImportController extends Controller
                 continue;
             }
 
-            $this->orders->create($user, [
-                'channel_id' => (int) $request->channel_id,
-                'order_number' => $number,
-                'order_date' => $this->parseDate($first['order_date'] ?? null),
-                'customer_name' => $first['customer_name'] ?? null,
-                'customer_phone' => $first['customer_phone'] ?? null,
-                'status' => $this->mapStatus($first['status'] ?? null),
-            ], $items, 'import');
+            try {
+                $this->orders->create($user, [
+                    'channel_id' => (int) $request->channel_id,
+                    'order_number' => $number,
+                    'order_date' => $this->parseDate($first['order_date'] ?? null),
+                    'customer_name' => $first['customer_name'] ?? null,
+                    'customer_phone' => $first['customer_phone'] ?? null,
+                    'status' => $this->mapStatus($first['status'] ?? null),
+                ], $items, 'import');
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                // e.g. insufficient stock for a newly auto-created (0-stock) product.
+                // Skip just this order so one bad row doesn't abort the whole batch.
+                $report['skipped']++;
+                $rowErrors[] = "Order {$number}: ".collect($e->errors())->flatten()->implode(' ');
+                continue;
+            }
 
             $report['orders']++;
             $report['items'] += count($items);
+            if (! $isPro) {
+                $ordersRemaining--;
+            }
         }
 
-        return back()->with('status', sprintf(
+        $status = sprintf(
             'Imported %d orders (%d items). %d products auto-created, %d duplicates skipped, %d rows skipped.',
             $report['orders'], $report['items'], $report['products_created'], $report['duplicates'], $report['skipped']
-        ));
+        );
+
+        if ($report['plan_limited'] > 0) {
+            $status .= " {$report['plan_limited']} orders skipped — Free plan limit of ".User::FREE_MONTHLY_ORDER_LIMIT.' orders/month reached. Upgrade to Pro to import more.';
+        }
+
+        return back()->with('status', $status)->with('import_skipped', $rowErrors);
     }
 
     /** Parse CSV into an array of associative rows keyed by lowercased header. */
@@ -152,7 +182,7 @@ class OrderImportController extends Controller
         return $rows;
     }
 
-    private function resolveProduct($user, string $sku, string $name, array &$report)
+    private function resolveProduct($user, string $sku, string $name, array &$report, bool $isPro, ?int &$productsRemaining)
     {
         $query = $user->products();
 
@@ -167,8 +197,16 @@ class OrderImportController extends Controller
             }
         }
 
+        if (! $isPro && $productsRemaining <= 0) {
+            // Free plan product limit reached — can't auto-create a new stub product.
+            return null;
+        }
+
         // Auto-create a stub product so the order can be recorded; seller fills cost later.
         $report['products_created']++;
+        if (! $isPro) {
+            $productsRemaining--;
+        }
 
         return $user->products()->create([
             'name' => $name !== '' ? $name : $sku,
